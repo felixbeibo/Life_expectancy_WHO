@@ -1,0 +1,207 @@
+# import packages
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+# Data Cleaning Level 1: Clean up the table (Jafari 2022)
+
+# characteristics of clean table (Jafari 2022): 
+    # standard data structure (✓)
+    # intuitive but not codale column  titles (solved)
+    # each row has a unique identifier (✓)
+
+# open data
+df = pd.read_csv("Life_Expectancy_Data.csv", sep=',')
+df.head()
+
+  # print data types of columns
+print(df.dtypes)
+
+  df.describe()
+
+  # Remove duplicates
+df.drop_duplicates()
+
+# no rows removed; no duplicates found.
+
+  # Index of columns for renaming (because of spaces)
+df.columns
+
+  # renaming columns for codability
+# fixing typo in column name (thinness 1 19 years to thinness_10_19_years)
+
+df = df.rename(columns={'Country': 'country',
+                        'Year': 'year',
+                        'Status': 'status',
+                        'Life expectancy ': 'life_expectancy', 
+                        'Adult Mortality': 'adult_mortality',
+                        'infant deaths': 'infant_deaths',
+                        'Alcohol': 'alcohol',
+                        'percentage expenditure': 'percentage_expenditure',
+                        'Hepatitis B': 'hepatitis_b',
+                        'Measles ': 'measles',
+                        ' BMI ': 'bmi',
+                        'under-five deaths': 'under_five_deaths',
+                        'Polio': 'polio',
+                        'Total expenditure': 'total_expenditure',
+                        'Diphtheria ': 'diphtheria',  
+                        ' HIV/AIDS': 'hiv_aids',
+                        'GDP': 'gdp',  
+                        'Population': 'population', 
+                        ' thinness  1-19 years': 'thinness_10_19_years',
+                        ' thinness 5-9 years': 'thinness_5_9_years', 
+                        'Income composition of resources': 'icor',
+                        'Schooling': 'schooling' 
+                        })
+
+df.head(1)
+
+# Data cleaning Level 2:  Unpacking, restructuring and reformulating the table
+
+# creating boxplots for every numeric column (Jafari 2022)
+
+# selecting all numerical columns for plotting
+numerical_attributes = ['year',
+                        'life_expectancy',
+                        'adult_mortality',
+                        'infant_deaths',
+                        'alcohol',
+                        'percentage_expenditure',
+                        'hepatitis_b',
+                        'measles',
+                        'bmi',
+                        'under-five deaths ',
+                        'polio',
+                        'total_expenditure',
+                        'diphtheria',
+                        'hiv_aids',
+                        'gdp',
+                        'population',
+                        'thinness_10_19_years',
+                        'thinness_5_9_years',
+                        'icor',
+                        'schooling']
+
+# boxplots of all numerical attributes of the dataset
+plt.subplots(figsize=(20,8))
+
+count=1
+for i in numerical_attributes:
+    plt.subplot(2,10,count)
+    sns.boxplot(data=df[i])
+    plt.title(i, fontsize=12)
+    count+=1
+    
+plt.suptitle('Boxplots of all numerical_attributes of the dataset', fontsize=16)
+plt.subplots_adjust(top=0.85)
+plt.tight_layout()
+plt.show()
+
+# histrograms of all numerical attributes of the dataset
+plt.subplots(figsize=(20,15))
+
+count=1
+for i in numerical_attributes:
+    plt.subplot(4,5,count)
+    sns.histplot(data=df[i])
+    plt.title(i, fontsize=12)
+    count+=1
+    
+plt.suptitle('Histograms of all numerical attributes of the dataset', fontsize=16)
+plt.subplots_adjust(top=0.85)
+plt.tight_layout()
+plt.show()
+
+# Data cleaning Level 3: Missing Values, Outliers, and Errors
+
+df.info()
+
+# Errors
+# removing BMI (because of unreasonable data)
+df = df.drop('bmi', axis=1)
+
+# Missing values (NaN)
+# Counting missing values (NaN) in all columns
+nan_count = df.isna().sum()
+
+print(nan_count)
+
+# missing values (NaN) in percent
+(df.isna().sum() / df.shape[0])*100
+
+import missingno as msno
+msno.matrix(df)
+
+# Dropping rows which contain more than 6 missing attributes
+df_dropna = df.dropna(thresh=df.shape[1]-2, axis=0)
+msno.matrix(df_dropna)
+
+# Outliers
+# selecting attributes for outlier detection
+outlier_attributes = ['life_expectancy',
+                        'adult_mortality',
+                        'infant_deaths',
+                        'alcohol',
+                        'percentage_expenditure',
+                        'hepatitis_b',
+                        'measles',
+                        'bmi',
+                        'under-five deaths ',
+                        'polio',
+                        'total_expenditure',
+                        'diphtheria',
+                        'hiv_aids',
+                        'gdp',
+                        'population',
+                        'thinness_10_19_years',
+                        'thinness_5_9_years',
+                        'icor',
+                        'schooling']
+
+# Set threshold value for z-score
+zscore_threshold = 2
+
+#Calculate mean and standard devation for all attributes with possible outliers
+means = df[outlier_attributes].mean()
+stds = df[outlier_attributes].std()
+# Calculate Z-scores for selected features
+z_scores = ((df[outlier_attributes] - means) / stds)
+
+# Detect outliers based on the threshold
+outliers = (np.abs(z_scores) > zscore_threshold).any(axis=1)
+
+# Filter outliers from the dataset
+filtered_df = df[~outliers]
+
+# boxplots of all outlier_attributes of the dataset
+plt.subplots(figsize=(20,8))
+
+count=1
+for i in outlier_attributes:
+    plt.subplot(2,10,count)
+    sns.boxplot(data=filtered_df[i])
+    plt.title(i, fontsize=12)
+    count+=1
+    
+plt.suptitle('Boxplots of all outlier_attributes of the dataset', fontsize=16)
+plt.subplots_adjust(top=0.85)
+plt.tight_layout()
+plt.show()
+
+# histrograms of all outlier_attributes of the dataset
+plt.subplots(figsize=(20,15))
+
+count=1
+for i in outlier_attributes:
+    plt.subplot(4,5,count)
+    sns.histplot(data=filtered_df[i])
+    plt.title(i, fontsize=12)
+    count+=1
+    
+plt.suptitle('Histograms of all outlier_attributes of the dataset', fontsize=16)
+plt.subplots_adjust(top=0.85)
+plt.tight_layout()
+plt.show()
+

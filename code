@@ -60,6 +60,10 @@ df.head(1)
 
 # Data cleaning Level 2:  Unpacking, restructuring and reformulating the table
 
+# counting rows and columns
+df.shape
+
+
 # creating boxplots for every numeric column (Jafari 2022)
 
 # selecting all numerical columns for plotting
